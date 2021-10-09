@@ -7,8 +7,22 @@ namespace srt_renamer
 {
     public class SubTitleScanner
     {
+        private readonly bool verbose;
 
-        public void RenameAll(string directory)
+        public SubTitleScanner(bool verbose)
+        {
+            this.verbose = verbose;
+        }
+
+        private void Log(string message, params object[] args)
+        {
+            if (verbose)
+            {
+               Console.WriteLine(message, args);
+            }
+        }
+
+        public void RenameAll(Regex videoRegex, Regex srtRegex, string directory)
         {
             if (!Directory.Exists(directory))
             {
@@ -32,55 +46,43 @@ namespace srt_renamer
 
             foreach (var file in srtFiles)
             {
-                var regex = new Regex(@"S[0-9]{1,2}E[0-9]{1,2}");
-                var matches = regex.Match(file);
-                if (matches.Success)
-                {
-                    var value = matches.Value;
-
-                    foreach (var video in videos)
-                    {
-                        var isVideoMatch = video.IndexOf(value);
-                        if (isVideoMatch > -1)
-                        {
-                            Move(video, file);
-                            break;
-                        }
-                    }
-                }
-                else
-                {
-
-                    renameType2(file, videos);
-
-                }
-
+                RenameType2(videoRegex, srtRegex, file, videos);
             }
         }
-        void renameType2(string file, List<string> videos)
-        {
-            var regex = new Regex(@"S[0-9]{1,2}E \(([0-9]{1,2})\)");
-            var match = regex.Match(file);
+        void RenameType2(Regex videoRegex, Regex srtRegex, string file, List<string> videos)
+        {            
+            var match = srtRegex.Match(file);
+
+            Log("matching srt file {0}", file);
 
             if (match.Success)
             {
-                var episodeIdStr = match.Groups[1].Value;
+                Log("srt file {0} matched regex", file);
+
+                var episodeIdStr = match.Groups[2].Value;
                 var episodeId = int.Parse(episodeIdStr);
                 foreach (var video in videos)
                 {
-                    var regex2 = new Regex(@"E([0-9]{1,2})");
-                    var match2 = regex2.Match(video);
+                    Log("matching video file {0}", video);
+
+                    var match2 = videoRegex.Match(video);
                     if (match2.Success)
                     {
-                        var episode = match2.Groups[1].Value;
+                        Log("video file {0} matched regex", video);
+
+                        var episode = match2.Groups[2].Value;
                         var episodeNumber = int.Parse(episode);
                         if (episodeId == episodeNumber)
                         {
+                            Log("video file {0} matched to srt {1} file", video, file);
                             Move(video, file);
                             break;
                         }
                     }
                 }
+            }else
+            {
+
             }
         }
 
@@ -91,7 +93,7 @@ namespace srt_renamer
             if (!File.Exists(newPath) && File.Exists(video))
             {
                 File.Move(video, newPath);
-                Console.WriteLine($"Renamed file {video} to {newPath}");
+                Log($"Renamed video {video} to {newPath}");
             }
         }
     }
