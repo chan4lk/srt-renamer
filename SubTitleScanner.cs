@@ -18,11 +18,11 @@ namespace srt_renamer
         {
             if (verbose)
             {
-               Console.WriteLine(message, args);
+                Console.WriteLine(message, args);
             }
         }
 
-        public void RenameAll(Regex videoRegex, Regex srtRegex, string directory)
+        public void RenameAll(string directory)
         {
             if (!Directory.Exists(directory))
             {
@@ -46,43 +46,25 @@ namespace srt_renamer
 
             foreach (var file in srtFiles)
             {
-                RenameType2(videoRegex, srtRegex, file, videos);
+                RenameType2(file, videos);
             }
         }
-        void RenameType2(Regex videoRegex, Regex srtRegex, string file, List<string> videos)
-        {            
-            var match = srtRegex.Match(file);
-
+        void RenameType2(string file, List<string> videos)
+        {                 
             Log("matching srt file {0}", file);
 
-            if (match.Success)
+            foreach (var video in videos)
             {
-                Log("srt file {0} matched regex", file);
+                Log("matching video file {0}", video);
 
-                var episodeIdStr = match.Groups[2].Value;
-                var episodeId = int.Parse(episodeIdStr);
-                foreach (var video in videos)
+                var matchRatio = FuzzySharp.Fuzz.PartialRatio(file, video);
+
+                if(matchRatio > 80)
                 {
-                    Log("matching video file {0}", video);
-
-                    var match2 = videoRegex.Match(video);
-                    if (match2.Success)
-                    {
-                        Log("video file {0} matched regex", video);
-
-                        var episode = match2.Groups[2].Value;
-                        var episodeNumber = int.Parse(episode);
-                        if (episodeId == episodeNumber)
-                        {
-                            Log("video file {0} matched to srt {1} file", video, file);
-                            Move(video, file);
-                            break;
-                        }
-                    }
+                    Log("video file {0} matched to srt {1} file", video, file);
+                    Move(video, file);
+                    break;
                 }
-            }else
-            {
-
             }
         }
 

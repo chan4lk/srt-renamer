@@ -16,12 +16,6 @@ namespace srt_renamer
 
             [Option('p', "path", Required = false, HelpText = "Path to folder of videos with subtitle files.")]
             public string Path { get; set; }
-
-            [Option('v', "video", Required = false, HelpText = "Regex to match video ex:- ." + @"S(\d\d?).E(\d\d?)")]
-            public string VideoMatch { get; set; }
-
-            [Option('s', "srt", Required = false, HelpText = "Regex to match srt ex:- ." + @"S(\d\d?).E(\d\d?)")]
-            public string SrtMatch { get; set; }
         }
 
         static void Main(string[] args)
@@ -39,25 +33,10 @@ namespace srt_renamer
                            {
                                Console.WriteLine("Using the path given {0}", o.Path);
                                path = o.Path;
-                           }
-
-                           var srtRegex = new Regex(@"S(\d\d?).E(\d\d?)");
-                           var videoRegex = new Regex(@"S(\d\d?).E(\d\d?)");
-
-                           if (!string.IsNullOrEmpty(o.SrtMatch))
-                           {
-                               if(o.Verbose) Console.WriteLine("Using the regex given {0} for matching srt files", o.SrtMatch);
-                               srtRegex = new Regex(@o.SrtMatch);
-                           }
-
-                           if (!string.IsNullOrEmpty(@o.VideoMatch))
-                           {
-                               if (o.Verbose) Console.WriteLine("Using the regex given {0} for matching video files", o.VideoMatch);
-                               videoRegex = new Regex(@o.VideoMatch);
-                           }
+                           }                          
 
                            var scanner = new SubTitleScanner(o.Verbose);
-                           scanner.RenameAll(videoRegex, srtRegex, path);
+                           scanner.RenameAll(path);
 
                            Console.WriteLine("Parsing done on files in {0}", path);
 
