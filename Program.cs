@@ -17,17 +17,23 @@ namespace srt_renamer
             [Option('p', "path", Required = false, HelpText = "Path to folder of videos with subtitle files.")]
             public string Path { get; set; }
 
-            [Option('v', "video", Required = false, HelpText = "Regex to match video ex:- ." + @"S(\d\d?).E(\d\d?)")]
+            [Option('v', "video", Required = false, HelpText = "Regex to match video ex:- " + @"S(\d\d?).E(\d\d?)")]
             public string VideoMatch { get; set; }
 
-            [Option('s', "srt", Required = false, HelpText = "Regex to match srt ex:- ." + @"S(\d\d?).E(\d\d?)")]
+            [Option('s', "srt", Required = false, HelpText = "Regex to match srt ex:- " + @"S(\d\d?).E(\d\d?)")]
             public string SrtMatch { get; set; }
+
+            [Option("srt-group", Required = false, HelpText = "Regex group to match srt ex:- 1")]
+            public int SrtGroup { get; set; }
+
+            [Option("video-group", Required = false, HelpText = "Regex group to match srt ex:- 2")]
+            public int VideoGroup { get; set; }
         }
 
         static void Main(string[] args)
         {
             Console.WriteLine(
-                        FiggleFonts.Standard.Render("Srt Renamer from @chan4lk"));
+                        FiggleFonts.Standard.Render("Srt Renamer"));
 
             var path = Directory.GetCurrentDirectory();
 
@@ -43,6 +49,8 @@ namespace srt_renamer
 
                            var srtRegex = new Regex(@"S(\d\d?).E(\d\d?)");
                            var videoRegex = new Regex(@"S(\d\d?).E(\d\d?)");
+                           var srtGroup = 2;
+                           var videoGroup = 2;
 
                            if (!string.IsNullOrEmpty(o.SrtMatch))
                            {
@@ -56,8 +64,20 @@ namespace srt_renamer
                                videoRegex = new Regex(@o.VideoMatch);
                            }
 
+                           if(o.VideoGroup != default(int))
+                           {
+                               if (o.Verbose) Console.WriteLine("Using the regex group given {0} for matching video files", o.VideoGroup);
+                               videoGroup = o.VideoGroup;
+                           }
+
+                           if (o.SrtGroup != default(int))
+                           {
+                               if (o.Verbose) Console.WriteLine("Using the regex group given {0} for matching srt files", o.SrtGroup);
+                               srtGroup = o.SrtGroup;
+                           }
+
                            var scanner = new SubTitleScanner(o.Verbose);
-                           scanner.RenameAll(videoRegex, srtRegex, path);
+                           scanner.RenameAll(videoRegex, srtRegex, path, srtGroup, videoGroup);
 
                            Console.WriteLine("Parsing done on files in {0}", path);
 

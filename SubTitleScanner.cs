@@ -22,7 +22,7 @@ namespace srt_renamer
             }
         }
 
-        public void RenameAll(Regex videoRegex, Regex srtRegex, string directory)
+        public void RenameAll(Regex videoRegex, Regex srtRegex, string directory, int srtGroup, int videoGroup)
         {
             if (!Directory.Exists(directory))
             {
@@ -46,10 +46,10 @@ namespace srt_renamer
 
             foreach (var file in srtFiles)
             {
-                RenameType2(videoRegex, srtRegex, file, videos);
+                RenameType2(videoRegex, srtRegex, file, videos, srtGroup, videoGroup);
             }
         }
-        void RenameType2(Regex videoRegex, Regex srtRegex, string file, List<string> videos)
+        void RenameType2(Regex videoRegex, Regex srtRegex, string file, List<string> videos, int srtGroup, int videoGroup)
         {            
             var match = srtRegex.Match(file);
 
@@ -59,7 +59,7 @@ namespace srt_renamer
             {
                 Log("srt file {0} matched regex", file);
 
-                var episodeIdStr = match.Groups[2].Value;
+                var episodeIdStr = match.Groups[srtGroup].Value;
                 var episodeId = int.Parse(episodeIdStr);
                 foreach (var video in videos)
                 {
@@ -70,7 +70,7 @@ namespace srt_renamer
                     {
                         Log("video file {0} matched regex", video);
 
-                        var episode = match2.Groups[2].Value;
+                        var episode = match2.Groups[videoGroup].Value;
                         var episodeNumber = int.Parse(episode);
                         if (episodeId == episodeNumber)
                         {
