@@ -3,6 +3,10 @@
     "srt-renamer": {
       "commandName": "Project",
       "commandLineArgs": " .\\srt-renamer.exe --verbose --path E:\\Data\\Media\\Videos\\sp2 --video \"S(\\d\\d?).E(\\d\\d?)\" --srt \"S(\\d\\d?).E(\\d\\d?)\""
+    },
+    "convert": {
+      "commandName": "Project",
+      "commandLineArgs": " .\\srt-renamer.exe --verbose --path \"F:\\Videos\\Battle Through the Heaven\\vtt\" --convert"
     }
   }
 }

@@ -1,6 +1,5 @@
 ﻿using CommandLine;
 using Figgle;
-using Microsoft.Extensions.Configuration;
 using System;
 using System.IO;
 using System.Text.RegularExpressions;
@@ -16,6 +15,9 @@ namespace srt_renamer
 
             [Option('p', "path", Required = false, HelpText = "Path to folder of videos with subtitle files.")]
             public string Path { get; set; }
+
+            [Option('c', "convert", Required = false, HelpText = "Convert VTT files to srt.")]
+            public bool ConvertVtt { get; set; }
 
             [Option('v', "video", Required = false, HelpText = "Regex to match video ex:- " + @"S(\d\d?).E(\d\d?)")]
             public string VideoMatch { get; set; }
@@ -47,39 +49,51 @@ namespace srt_renamer
                                path = o.Path;
                            }
 
-                           var srtRegex = new Regex(@"S(\d\d?).E(\d\d?)");
-                           var videoRegex = new Regex(@"S(\d\d?).E(\d\d?)");
-                           var srtGroup = 2;
-                           var videoGroup = 2;
-
-                           if (!string.IsNullOrEmpty(o.SrtMatch))
+                           if (o.ConvertVtt)
                            {
-                               if(o.Verbose) Console.WriteLine("Using the regex given {0} for matching srt files", o.SrtMatch);
-                               srtRegex = new Regex(@o.SrtMatch);
+                               Console.WriteLine("Using the path given {0} to convert vtt files to srt", o.Path);
+                               var converter = new VttConverter(o.Verbose);
+                               converter.Convert(path);
+                               Console.WriteLine("Convert done on files in {0}", path);
+                           }
+                           else
+                           {
+                               var srtRegex = new Regex(@"S(\d\d?).E(\d\d?)");
+                               var videoRegex = new Regex(@"S(\d\d?).E(\d\d?)");
+                               var srtGroup = 2;
+                               var videoGroup = 2;
+
+                               if (!string.IsNullOrEmpty(o.SrtMatch))
+                               {
+                                   if (o.Verbose) Console.WriteLine("Using the regex given {0} for matching srt files", o.SrtMatch);
+                                   srtRegex = new Regex(@o.SrtMatch);
+                               }
+
+                               if (!string.IsNullOrEmpty(@o.VideoMatch))
+                               {
+                                   if (o.Verbose) Console.WriteLine("Using the regex given {0} for matching video files", o.VideoMatch);
+                                   videoRegex = new Regex(@o.VideoMatch);
+                               }
+
+                               if (o.VideoGroup != default(int))
+                               {
+                                   if (o.Verbose) Console.WriteLine("Using the regex group given {0} for matching video files", o.VideoGroup);
+                                   videoGroup = o.VideoGroup;
+                               }
+
+                               if (o.SrtGroup != default(int))
+                               {
+                                   if (o.Verbose) Console.WriteLine("Using the regex group given {0} for matching srt files", o.SrtGroup);
+                                   srtGroup = o.SrtGroup;
+                               }
+
+                               var scanner = new SubTitleScanner(o.Verbose);
+                               scanner.RenameAll(videoRegex, srtRegex, path, srtGroup, videoGroup);
+
+                               Console.WriteLine("Parsing done on files in {0}", path);
                            }
 
-                           if (!string.IsNullOrEmpty(@o.VideoMatch))
-                           {
-                               if (o.Verbose) Console.WriteLine("Using the regex given {0} for matching video files", o.VideoMatch);
-                               videoRegex = new Regex(@o.VideoMatch);
-                           }
-
-                           if(o.VideoGroup != default(int))
-                           {
-                               if (o.Verbose) Console.WriteLine("Using the regex group given {0} for matching video files", o.VideoGroup);
-                               videoGroup = o.VideoGroup;
-                           }
-
-                           if (o.SrtGroup != default(int))
-                           {
-                               if (o.Verbose) Console.WriteLine("Using the regex group given {0} for matching srt files", o.SrtGroup);
-                               srtGroup = o.SrtGroup;
-                           }
-
-                           var scanner = new SubTitleScanner(o.Verbose);
-                           scanner.RenameAll(videoRegex, srtRegex, path, srtGroup, videoGroup);
-
-                           Console.WriteLine("Parsing done on files in {0}", path);
+                           
 
                        })
                        .WithNotParsed(o =>
